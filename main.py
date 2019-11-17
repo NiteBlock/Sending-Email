@@ -1,18 +1,7 @@
-import json
-import os
-import time
-import random
+import tkinter as tk
+import smtplib
 
-specialChars = ["!","@","#","$","%","^","*"]
-numbers = [1,2,3,4,5,6,7,8,9,0]
-alphabet = ["A", "a", "B", "b", "C", "c", "D", "d", "E", "e", "F", "f", "G", "g", "H", "h", "I", "i", "J", "j", "K" "k", "L", "l", "M", "m", "N", "n", "O", "o", "P", "p" ,"Q", "q", "R", "r", "S", "s", "T", "t", "U", "u","V", "v","W", "w", "X", "x", "Y", "y", "Z", "z"]
-
-accounts = json.load(open("passwords.json"))
-
-def clear():
-    os.system('cls')
-
-def searchData(data, location):
+def search(data, location):
     for i in location:
         if i == data:
             return True
@@ -20,60 +9,89 @@ def searchData(data, location):
     return False
 
 def main():
-    clear()
-    print("Type 'password' to generate password")
-    print("Type 'add' to add website")
-    print("Type site name that you want data for it")
-    data = input("> ")
+    root = tk.Tk()
+    root.title("Sending Email")
+    root.minsize(300, 450)
 
-    if data == "add":
-        addPage()
+    frame = tk.Frame(bg="#999999")
+    frame.place(relx = 0.1 , rely = 0.1 , relheight = 0.8, relwidth = 0.8)
 
-    elif data == "password":
-        clear()
-        print(generatePassword())
-        time.sleep(5)
-        main()
+    textEmail = tk.Label(frame, text = "Type your email", bg="#999999")
+    textEmail.pack()
+    email_address = tk.Entry(frame)
+    email_address.pack()
 
-    if searchData(data, accounts):
-        for info in accounts[data]:
-            clear()
-            print("Username: ")
-            print(info["username"])
-            print("\nE-mail: ")
-            print(info["email"])
-            print("\nPassword: ")
-            print(info["password"])
-            time.sleep(3.5)
+    space = tk.Label(frame ,text="", bg="#999999")
+    space.pack()
+
+    textPassword = tk.Label(frame ,text="Type your password", bg="#999999")
+    textPassword.pack()
+    email_password = tk.Entry(frame, show="-")
+    email_password.pack()
+
+    space = tk.Label(frame ,text="", bg="#999999")
+    space.pack()
+
+    textReciever = tk.Label(frame, text = "Type reciever email", bg="#999999")
+    textReciever.pack()
+    reciever = tk.Entry(frame)
+    reciever.pack()
+
+    space = tk.Label(frame ,text="", bg="#999999")
+    space.pack()
+
+    subjectText = tk.Label(frame, text="Type subject of the message", bg="#999999")
+    subjectText.pack()
+
+    subject = tk.Entry(frame)
+    subject.pack()
+
+    space = tk.Label(frame ,text="" , bg="#999999")
+    space.pack()
+
+    messageText = tk.Label(frame, text = "Type content of message", bg="#999999")
+    messageText.pack()
+
+    message = tk.Entry(frame)
+    message.pack()
+
+    space = tk.Label(frame ,text="" , bg="#999999")
+    space.pack()
+
+    submit = tk.Button(frame, text = "Submit", bg="#FFA500", command = lambda:sendEmail(email_address.get(),email_password.get(), reciever.get(), subject.get(), message.get()))
+    submit.pack()
+
+    space = tk.Label(frame ,text="" , bg="#999999")
+    space.pack()
+
+    root.mainloop()
+
+
+def sendEmail(email_address, email_password, reciever, subject, msg):
+
+    if search("@",email_address) and search("@",reciever):
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.ehlo()
+
+            smtp.login(email_address, email_password)
+
+            subject = subject
+            body = msg
+
+            msg = f"Subject: {subject}\n\n{body}"
+
+            print("Sending Email...")
+            smtp.sendmail(email_address, reciever , msg)
+            print("Email Sent...")
+            
             main()
 
-    elif searchData(data, accounts) !=  True:
-        print("We don't have account data to this site. Check if this site exists, if exsists check if you have account and check if your login data to this site is current")
+    else:
+        print("Wrong emails was given")
         time.sleep(1.5)
         main()
 
-def addPage():
-    clear()
-    print("Adding Page:")
-    pageName = input("Page > ")
-    username = input("Username (if doesn't exsists type 'null')> ")
-    email = input("Email > ")
-    password = input("Password > ")
-
-    accounts.update({pageName:[{"username": username, "email": email, "password" : password}]})
-
-    with open("passwords.json","w") as f:
-        json.dump(accounts, f, indent = 4)
-
-    print("Added")
-    main()
-
-def generatePassword():
-    password = ""
-    while True:
-        password += random.choice(alphabet) + str(random.choice(numbers)) + random.choice(specialChars)
-
-        if len(password) == 18:
-            return password
-            
 main()
